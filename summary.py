@@ -5,7 +5,7 @@ from stat import *
 printReceipts = False
 
 class Receipt:
-        def __init__(self, name):
+        def __init__(self, name, account):
 
                 self.name = name
                 self.paidBy = "none"
@@ -13,34 +13,7 @@ class Receipt:
                 self.paidDate = "none"
                 self.description = "none"
                 self.date = "none"
-
-                return 
-
-
-
-        def setName(self, name):
-                self.name = name
-
-        def setDate(self, date):
-                self.date = date
-        def setPaidBy(self, paidBy):
-                self.paidBy = paidBy;
-
-        def setPaidDate(self, paidDate):
-                self.paidDate = paidDate
-
-        def setAmount(self, amount):
-                self.amount = amount
-
-        def setDescription(self, description):
-                self.description = description
-
-        def getName(self): return self.name
-        def getPaidBy(self): return self.paidBy
-        def getAmount(self): return self.amount
-        def getDescription(self): return self.amount
-        def getDate(self): return self.date
-        def getPaidDate(self): return self.paidDate
+                self.account = account
 
         def setValuesFromName(self):
                 values = self.name.split('-')
@@ -56,37 +29,34 @@ class Receipt:
 
 
 class Account:
-	def __init__(self, name):
-		self.receipts = []
-		self.name = name
+    def __init__(self, name):
+        self.receipts = []
+        self.name = name
 
-		self.hasSubAccount = False
+        self.hasSubAccount = False
 
-		return
+        return
 
-	def getSum(self):
-		sum = 0
-		for r in self.receipts:
-			sum = sum + r.getAmount()
-		return sum
+    def getSum(self):
+        return sum(r.amount for r in self.receipts)
 
-	def getName(self): return self.name
+    def getName(self): return self.name
 
-	def setHasSubAccount(self, hasSubAccount):
-		self.hasSubAccount = hasSubAccount
+    def setHasSubAccount(self, hasSubAccount):
+        self.hasSubAccount = hasSubAccount
 
-	def addReceipt(self, receipt):
-		self.receipts.append(receipt)
+    def addReceipt(self, receipt):
+        self.receipts.append(receipt)
 
-	def printAccount(self):
-		if(self.hasSubAccount):
-			print "         ", '{:<25s}'.format(self.name), "Total:", "$" + '{:>12.2f}'.format(float(self.getSum()))
-		else:
-			print "Account: ", '{:<25s}'.format(self.name), "Total:", "$" + '{:>12.2f}'.format(float(self.getSum()))
-		if(printReceipts):
-			for r in self.receipts:
-				if(r.getName() != "ERROR"):
-					print r.getName(),":",str(r.getAmount())
+    def printAccount(self):
+        if(self.hasSubAccount):
+            print "         ", '{:<30s}'.format(self.name), "Total:", "$" + '{:>12.2f}'.format(float(self.getSum()))
+        else:
+            print "Account: ", '{:<30s}'.format(self.name), "Total:", "$" + '{:>12.2f}'.format(float(self.getSum()))
+        if(printReceipts):
+            for r in self.receipts:
+                if(r.getName() != "ERROR"):
+                    print r.getName(),":",str(r.getAmount())
 
 
 
@@ -106,18 +76,18 @@ def walktree(top, callback, account):
 
                         nextAccount = f
                         if(account != "Grand Total"):
-                        	nextAccount = account + "/" + f
+                            nextAccount = account + "/" + f
 
                         totalAccount = walktree(pathname, callback, nextAccount)
            
-                        newReceipt = Receipt(f)
-                        newReceipt.setAmount(totalAccount)
+                        newReceipt = Receipt(f, x)
+                        newReceipt.amount = totalAccount
                         x.addReceipt(newReceipt)
 
                 elif S_ISREG(mode):
                         # It's a file, call the callback function
                         # callback(top, f)
-                        newReceipt = Receipt(f)
+                        newReceipt = Receipt(f, x)
                         newReceipt.setValuesFromName()
                         x.addReceipt(newReceipt)
                 else:
@@ -125,35 +95,36 @@ def walktree(top, callback, account):
                         print 'Skipping %s' % pathname
 
 
-       	
+        
         x.printAccount()
         return x.getSum()
 
 
+def recurse():
+    return [something_else] + recurse()
+
 
 def main():
+    
+    directory = "."
+    numargs = len(sys.argv)
+    if(numargs == 2):
 
-	directory = "."
-	numargs = len(sys.argv)
-	if(numargs == 2):
+        print(sys.argv[1])
+        directory = sys.argv[1]
 
-		print(sys.argv[1])
-		directory = sys.argv[1]
-
-	print("Files in " + directory + ":")
-
-
-	files = os.listdir(directory)
-	files.sort() 
-
-	accounts = []
-	receipts = []
+    print("Files in " + directory + ":")
 
 
-	walktree(directory, visitfile, "Grand Total")
+    files = os.listdir(directory)
+    files.sort() 
+
+    accounts = []
+    receipts = []
 
 
+    walktree(directory, visitfile, "Grand Total")
 
 
-
-main()
+if __name__ == '__main__':
+    main()
