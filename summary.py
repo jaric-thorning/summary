@@ -224,6 +224,29 @@ def paidTo(accounts, filter):
 
     return paid
 
+class PDF:
+    def __init__():
+        self.pdf = PDF(orientation = 'P', unit = 'mm', format='A4')
+        self.pdf.add_page()
+
+    
+    def add_title(self, title):
+        pdf.ln(15)
+        pdf.set_font('Courier', 'B', 16)
+        pdf.cell(130, 10, title,1, 1, 'C')
+
+    def add_subtitle(self, subtitle):
+        pdf.set_font('Courier', 'B', 9)
+        pdf.cell(130, 10, subtitle,0, 1)
+
+    def add_heading1(self, heading): 
+        self.pdf.set_font('Courier', 'B', 14)
+        self.pdf.cell(130, 10, heading,0, 1)
+
+    def add_centered_text(self, text):
+        pdf.set_font('Courier', '', 11)
+        self.pdf.cell(130 , 7, text, 0, 1, 'C')
+
 def generatePDF(directory):
 
     print("Generating PDF...")
@@ -252,36 +275,21 @@ def generatePDF(directory):
     if(foundRoot == False):
         relativeDir = directory
 
-    pdf = FPDF(orientation = 'P', unit = 'mm', format='A4')
-    pdf.add_page()
-    pdf.set_font('Courier', 'B', 16)
-    pdf.ln(15)
+    report = PDF()
+    report.pdf.add_page()
     now = datetime.date.today()
-    pdf.cell(130, 10, F"UQ Sailing Club Accounts    {now}",1, 1, 'C')
-    pdf.ln(0)
 
-    pdf.set_font('Courier', 'B', 9)
-    pdf.cell(130, 10, F"/{relativeDir}",0, 1)
-
-    pdf.ln(10)
-    pdf.set_font('Courier', 'B', 14)
-    pdf.cell(130, 10, F"Receipts",0, 1)
-    pdf.set_font('Courier', '', 11)
+    report.add_title(F"UQ Sailing Club Accounts    {now}")
+    report.add_subtitle(F"/{relativeDir}")
+    report.pdf.ln(10)
+    report.add_heading1(F"Receipts")
     
     pdf.image("uqsail.png", 150, 10, 40, 40, "", "")
     for a in accounts:
-        #text = a.printFormat()
-        if(a.accountName == "Grand Total"):
-            pdf.set_font('Courier', 'B', 11)
-        pdf.cell(0,7, F"{a.level * 3 * ' '}{a.accountName}".ljust(50) + "$" + F"{float(a.getSum()):.2f}".rjust(12), 0,1, 'C')
-        if(a.accountName == "Grand Total"):
-            pdf.set_font('Courier', '', 11)
-    
+        report.add_centered_text(F"{a.level * 3 * ' '}{a.accountName}".ljust(50) + "$" + F"{float(a.getSum()):.2f}".rjust(12))    
 
-    pdf.add_page()
-    pdf.set_font('Courier', 'B', 14)
-    pdf.cell(130, 10, F"Reimbursements - Paid",0, 1)
-    pdf.set_font('Courier', '', 11)
+    report.pdf.add_page()
+    report.add_heading1(F"Reimbursements - Paid")
 
     paid = paidTo(accounts, "PAID")
 
@@ -290,16 +298,14 @@ def generatePDF(directory):
 
         for person, amount in sorted(list(paid.items()), key=lambda x: x[1], reverse=True):
             text = F"{person}".ljust(50) +"$"+ F"{float(amount):.2f}".rjust(12)
-            pdf.cell(0, 7, text,0, 1, 'C')
+            report.add_centered_text(text)
             print(text)    
     else: 
         text = "None"
-        pdf.cell(0, 7, text,0, 1, 'C')
+        report.add_centered_text(text)
         print(text) 
     
-    pdf.set_font('Courier', 'B', 14)
-    pdf.cell(130, 10, F"Reimbursements - Yet to be paid",0, 1)
-    pdf.set_font('Courier', '', 11)
+    report.add_heading1("Reimbursements - Yet to be paid")
 
     unpaid = paidTo(accounts, "UNPAID")
 
