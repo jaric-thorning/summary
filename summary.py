@@ -247,12 +247,7 @@ class PDF:
         self.pdf.set_font('Courier', '', 11)
         self.pdf.cell(130 , 7, text, 0, 1, 'C')
 
-def generatePDF(directory):
-
-    print("Generating PDF...")
-
-    totalamount, accounts, errorReceipts = walktree(directory, visitfile, "Grand Total")
-
+def getRelativeDir(directory):
     foundRoot = False
     relativeDir = ""
     localDir = ""
@@ -275,6 +270,56 @@ def generatePDF(directory):
     if(foundRoot == False):
         relativeDir = directory
 
+    return relativeDir, localDir
+        
+
+def printResult(totalamount, accounts, errorReceipts, directory):
+    print("Printing Results...")
+
+    print(F"Total Amount is {totalamount}")
+
+    relativeDir, localDir = getRelativeDir(directory)
+
+    now = datetime.date.today()
+
+    for a in accounts:
+        print(F"{a.level * 3 * ' '}{a.accountName}".ljust(50) + "$" + F"{float(a.getSum()):.2f}".rjust(12))
+
+    paid = paidTo(accounts, "PAID")
+
+    print("\nPaid: ")
+    if(len(paid) != 0):
+        for person, amount in sorted(list(paid.items()), key=lambda x: x[1], reverse=True):
+            print(F"{person}".ljust(50) +"$"+ F"{float(amount):.2f}".rjust(12))    
+    else: 
+        print("None") 
+
+    unpaid = paidTo(accounts, "UNPAID")
+
+    print("\nUnpaid: ")
+    if(len(unpaid) != 0):
+        for person, amount in sorted(list(unpaid.items()), key=lambda x: x[1], reverse=True):
+            print(F"{person}".ljust(50) +"$"+ F"{float(amount):.2f}".rjust(12))
+    else: 
+        print("None") 
+
+    
+    print("\nUnable to process")
+
+    if(len(errorReceipts) > 0):
+        for e in errorReceipts:
+            print(e)
+
+    else: 
+        print("None") 
+
+
+def generatePDF(totalamount, accounts, errorReceipts, directory):
+
+    print("Generating PDF...")
+
+    relativeDir, localDir = getRelativeDir(directory)
+
     report = PDF()
     report.pdf.add_page()
     now = datetime.date.today()
@@ -293,47 +338,31 @@ def generatePDF(directory):
 
     paid = paidTo(accounts, "PAID")
 
-    print("\nPaid: ")
     if(len(paid) != 0):
 
         for person, amount in sorted(list(paid.items()), key=lambda x: x[1], reverse=True):
-            text = F"{person}".ljust(50) +"$"+ F"{float(amount):.2f}".rjust(12)
-            report.add_centered_text(text)
-            print(text)    
+            report.add_centered_text(F"{person}".ljust(50) +"$"+ F"{float(amount):.2f}".rjust(12))
     else: 
-        text = "None"
-        report.add_centered_text(text)
-        print(text) 
+        report.add_centered_text("None")
     
     report.add_heading1("Reimbursements - Yet to be paid")
 
     unpaid = paidTo(accounts, "UNPAID")
 
-    print("\nUnpaid: ")
     if(len(unpaid) != 0):
         for person, amount in sorted(list(unpaid.items()), key=lambda x: x[1], reverse=True):
-            text = F"{person}".ljust(50) +"$"+ F"{float(amount):.2f}".rjust(12)
-            report.pdf.cell(0, 7, text,0, 1, 'C')
-            print(text)
+            report.add_centered_text(F"{person}".ljust(50) +"$"+ F"{float(amount):.2f}".rjust(12))
     else: 
-        text = "None"
-        report.pdf.cell(0, 7, text,0, 1, 'C')
-        print(text) 
 
-    
+        report.add_centered_text("None")
+
     report.add_subtitle("Unable to Process")
-    print("\nUnable to process")
 
     if(len(errorReceipts) > 0):
-        
         for e in errorReceipts:
-            text = e
-            report.pdf.cell(0, 7, text,0, 1, 'C')
-            print(text)
+            report.add_centered_text(e)
     else: 
-        text = "None"
-        report.pdf.cell(0, 7, text,0, 1, 'C')
-        print(text) 
+        report.add_centered_text("None")
 
     report.pdf.output(F'UQSail Receipts ({localDir}) - {datetime.date.today()}.pdf', 'F')
     #pdf.output(F"report-{now}.pdf", 'F')
@@ -356,25 +385,13 @@ def main():
     else:
         print(F"Usage: [TODO]")
 
-    print("Files in " + directory + ":")
 
-
-    files = os.listdir(directory)
-    files.sort() 
-
-    accounts = []
-    receipts = []
-
-
-    totalamount, returnedAccounts, errorReceipts = walktree(directory, visitfile, "Grand Total")
-    
-    print(F"Total Amount is {totalamount}")
-    for a in returnedAccounts:
-        print(a.printFormat())
 
     #walktreeiterative(directory)
+    totalamount, accounts, errorReceipts = walktree(directory, visitfile, "Grand Total")
 
-    generatePDF(directory)
+    #generatePDF(totalamount, accounts, errorReceipts, directory)
+    printResult(totalamount, accounts, errorReceipts, directory)
                 
 
 if __name__ == '__main__':
