@@ -1,6 +1,7 @@
 import sys
 import os
 import datetime
+import subprocess
 from stat import *
 
 from fpdf import FPDF
@@ -245,7 +246,7 @@ class PDF:
 
     def add_centered_text(self, text):
         self.pdf.set_font('Courier', '', 11)
-        self.pdf.cell(130 , 7, text, 0, 1, 'C')
+        self.pdf.cell(0 , 7, text, 0, 1, 'C')
 
 def getRelativeDir(directory):
     foundRoot = False
@@ -321,7 +322,6 @@ def generatePDF(totalamount, accounts, errorReceipts, directory):
     relativeDir, localDir = getRelativeDir(directory)
 
     report = PDF()
-    report.pdf.add_page()
     now = datetime.date.today()
 
     report.add_title(F"UQ Sailing Club Accounts    {now}")
@@ -364,7 +364,12 @@ def generatePDF(totalamount, accounts, errorReceipts, directory):
     else: 
         report.add_centered_text("None")
 
-    report.pdf.output(F'UQSail Receipts ({localDir}) - {datetime.date.today()}.pdf', 'F')
+
+    pdfFileName = F'UQSail Receipts ({localDir}) - {datetime.date.today()}.pdf' 
+
+    report.pdf.output(pdfFileName, 'F')   
+
+    subprocess.call(['open', pdfFileName])
     #pdf.output(F"report-{now}.pdf", 'F')
 
 def main():
@@ -386,12 +391,12 @@ def main():
         print(F"Usage: [TODO]")
 
 
-
     #walktreeiterative(directory)
     totalamount, accounts, errorReceipts = walktree(directory, visitfile, "Grand Total")
 
-    #generatePDF(totalamount, accounts, errorReceipts, directory)
-    printResult(totalamount, accounts, errorReceipts, directory)
+    generatePDF(totalamount, accounts, errorReceipts, directory)
+
+    #printResult(totalamount, accounts, errorReceipts, directory)
                 
 
 if __name__ == '__main__':
