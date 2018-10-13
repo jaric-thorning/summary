@@ -225,26 +225,26 @@ def paidTo(accounts, filter):
     return paid
 
 class PDF:
-    def __init__():
-        self.pdf = PDF(orientation = 'P', unit = 'mm', format='A4')
+    def __init__(self):
+        self.pdf = FPDF(orientation = 'P', unit = 'mm', format='A4')
         self.pdf.add_page()
 
     
     def add_title(self, title):
-        pdf.ln(15)
-        pdf.set_font('Courier', 'B', 16)
-        pdf.cell(130, 10, title,1, 1, 'C')
+        self.pdf.ln(15)
+        self.pdf.set_font('Courier', 'B', 16)
+        self.pdf.cell(130, 10, title,1, 1, 'C')
 
     def add_subtitle(self, subtitle):
-        pdf.set_font('Courier', 'B', 9)
-        pdf.cell(130, 10, subtitle,0, 1)
+        self.pdf.set_font('Courier', 'B', 9)
+        self.pdf.cell(130, 10, subtitle,0, 1)
 
     def add_heading1(self, heading): 
         self.pdf.set_font('Courier', 'B', 14)
         self.pdf.cell(130, 10, heading,0, 1)
 
     def add_centered_text(self, text):
-        pdf.set_font('Courier', '', 11)
+        self.pdf.set_font('Courier', '', 11)
         self.pdf.cell(130 , 7, text, 0, 1, 'C')
 
 def generatePDF(directory):
@@ -284,7 +284,7 @@ def generatePDF(directory):
     report.pdf.ln(10)
     report.add_heading1(F"Receipts")
     
-    pdf.image("uqsail.png", 150, 10, 40, 40, "", "")
+    report.pdf.image("uqsail.png", 150, 10, 40, 40, "", "")
     for a in accounts:
         report.add_centered_text(F"{a.level * 3 * ' '}{a.accountName}".ljust(50) + "$" + F"{float(a.getSum()):.2f}".rjust(12))    
 
@@ -313,31 +313,29 @@ def generatePDF(directory):
     if(len(unpaid) != 0):
         for person, amount in sorted(list(unpaid.items()), key=lambda x: x[1], reverse=True):
             text = F"{person}".ljust(50) +"$"+ F"{float(amount):.2f}".rjust(12)
-            pdf.cell(0, 7, text,0, 1, 'C')
+            report.pdf.cell(0, 7, text,0, 1, 'C')
             print(text)
     else: 
         text = "None"
-        pdf.cell(0, 7, text,0, 1, 'C')
+        report.pdf.cell(0, 7, text,0, 1, 'C')
         print(text) 
 
     
-    pdf.set_font('Courier', 'B', 14)
-    pdf.cell(130, 10, F"Unable to Process",0, 1)
-    pdf.set_font('Courier', '', 11)
-
+    report.add_subtitle("Unable to Process")
     print("\nUnable to process")
+
     if(len(errorReceipts) > 0):
         
         for e in errorReceipts:
             text = e
-            pdf.cell(0, 7, text,0, 1, 'C')
+            report.pdf.cell(0, 7, text,0, 1, 'C')
             print(text)
     else: 
         text = "None"
-        pdf.cell(0, 7, text,0, 1, 'C')
+        report.pdf.cell(0, 7, text,0, 1, 'C')
         print(text) 
 
-    pdf.output(F'UQSail Receipts ({localDir}) - {datetime.date.today()}.pdf', 'F')
+    report.pdf.output(F'UQSail Receipts ({localDir}) - {datetime.date.today()}.pdf', 'F')
     #pdf.output(F"report-{now}.pdf", 'F')
 
 def main():
