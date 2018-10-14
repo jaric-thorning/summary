@@ -2,6 +2,10 @@ import sys
 import os
 import datetime
 import subprocess
+import numpy as np
+import matplotlib as mp
+import argparse
+
 from stat import *
 
 from fpdf import FPDF
@@ -374,29 +378,24 @@ def generatePDF(totalamount, accounts, errorReceipts, directory):
 
 def main():
     
-    directory = "."
-    numargs = len(sys.argv)
+    parser = argparse.ArgumentParser(description='Process some integers.')
 
-    watch = False
-    if(numargs == 2):
+    
+    parser.add_argument('-c', help='print to command-line ', action='store_true')
+    parser.add_argument('-p', help='generate PDF', action='store_true')
+    parser.add_argument('--directory', '--dir', '-d', help='directory', required='True')
+    args = parser.parse_args()
 
-        print(sys.argv[1])
-        directory = sys.argv[1]
-
-    elif(numargs == 3):
-        if(sys.argv[2] == "-w"):
-            #disable input, watch mode
-            watch = True
-    else:
-        print(F"Usage: [TODO]")
-
+    directory = args.directory
 
     #walktreeiterative(directory)
     totalamount, accounts, errorReceipts = walktree(directory, visitfile, "Grand Total")
 
-    generatePDF(totalamount, accounts, errorReceipts, directory)
+    if(args.c):
+        printResult(totalamount, accounts, errorReceipts, directory)
+    if(args.p):
+        generatePDF(totalamount, accounts, errorReceipts, directory)
 
-    #printResult(totalamount, accounts, errorReceipts, directory)
                 
 
 if __name__ == '__main__':
