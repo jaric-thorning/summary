@@ -376,6 +376,49 @@ def generatePDF(totalamount, accounts, errorReceipts, directory):
     subprocess.call(['open', pdfFileName])
     #pdf.output(F"report-{now}.pdf", 'F')
 
+def checkDirectory(directory):
+    if directory == None:
+        print("Directory must be set.")
+        return False
+
+    return True
+
+def interactive(directory):
+
+    while(True):
+        command = input("Enter command> ")
+        #print(command)
+
+        if command == "directory" or command == "d":
+            print(F"Current directory is: {directory}")
+            option = input("Change directory? (y/n)> ")
+            if option == "y" or option == "yes":
+                directory = input("Enter new directory> ")
+
+
+        if command == "search" or command == "s":
+            print(F"- Enter search parameters - " )
+            startDate = input("Start date (dd/mm/yy): ")
+            print(F"Start date selected: {startDate}")
+            endDate = input("End date (dd/mm/yy): ")
+            print(F"Start date selected: {endDate}")
+
+        if command == "summary":
+            if not checkDirectory(directory):
+                pass
+            else: 
+                totalamount, accounts, errorReceipts = walktree(directory, visitfile, "Grand Total")
+                printResult(totalamount, accounts, errorReceipts, directory)
+
+        if command == "pdf":
+            if not checkDirectory(directory):
+                pass
+            else: 
+                totalamount, accounts, errorReceipts = walktree(directory, visitfile, "Grand Total")
+                generatePDF(totalamount, accounts, errorReceipts, directory)
+
+
+
 def main():
     
     parser = argparse.ArgumentParser(description='Process some integers.')
@@ -383,18 +426,29 @@ def main():
     
     parser.add_argument('-c', help='print to command-line ', action='store_true')
     parser.add_argument('-p', help='generate PDF', action='store_true')
-    parser.add_argument('--directory', '--dir', '-d', help='directory', required='True')
+    parser.add_argument('--directory', '--dir', '-d', help='directory')#, required='False')
+    parser.add_argument('--interactive', '-i', help='interactive mode', action='store_true')
     args = parser.parse_args()
 
-    directory = args.directory
+    if not args.interactive and args.directory is None: 
+        parser.error("Non-Interactive mode requires --directory")
+
+    
 
     #walktreeiterative(directory)
-    totalamount, accounts, errorReceipts = walktree(directory, visitfile, "Grand Total")
+    
+    directory = args.directory
 
-    if(args.c):
-        printResult(totalamount, accounts, errorReceipts, directory)
-    if(args.p):
-        generatePDF(totalamount, accounts, errorReceipts, directory)
+    if not args.interactive:
+        
+        totalamount, accounts, errorReceipts = walktree(directory, visitfile, "Grand Total")
+        if args.c:
+            printResult(totalamount, accounts, errorReceipts, directory)
+        if args.p:
+            generatePDF(totalamount, accounts, errorReceipts, directory)
+    else: 
+        #interactive mode
+        interactive(directory)
 
                 
 
