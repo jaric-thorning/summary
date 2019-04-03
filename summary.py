@@ -23,6 +23,7 @@ class Receipt:
                 self.description = None
                 self.date = None
                 self.account = account
+                self.type = None
 
 
         def __str__(self):
@@ -155,8 +156,16 @@ def processReceipt(receiptString, account):
     elif(partsLen == 5):
         #potential paid receipt
        
-        if "PAID" in parts[4] and "UNPAID" not in parts[4]:
-            newReceipt.paidDate = parts[4][parts[4].find("("):parts[4].find(")")]
+        if "PAID" in parts[4]:
+            if "UNPAID" not in parts[4]:
+                newReceipt.paidDate = parts[4][parts[4].find("("):parts[4].find(")")]
+                newReceipt.type = "PAID"
+            else:
+                newReceipt.type = "UNPAID"
+        elif "SCANNED" in parts[4]:
+                 newReceipt.type = "SCANNED"
+
+
         #attempt to extract paid date 
     else: 
         return -1
@@ -214,6 +223,9 @@ def paidTo(accounts, filter):
 
     for a in accounts:
         for r in a.receipts:
+            if r.type == "SCANNED":
+                break
+
             if r.paidBy != None:
                 if(filter == "PAID"):
                     if(r.paidDate == None):
@@ -221,6 +233,8 @@ def paidTo(accounts, filter):
                 elif(filter == "UNPAID"):
                     if(r.paidDate != None):
                         break
+
+
 
                 if paid.get(r.paidBy) == None:
                     paid[r.paidBy] = r.amount
