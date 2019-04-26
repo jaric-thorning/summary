@@ -94,7 +94,7 @@ def viewSpreadsheet(creds):
             if(len(row) == 0): continue
 
             # Print columns A and E, which correspond to indices 0 and 4.
-            print(f"{row[1]} - {row[2]} - {row[3]} - {row[4]} - {row[5]} - ${row[6]} - UNPAID")
+            #print(f"{row[1]} - {row[2]} - {row[3]} - {row[4]} - {row[5]} - ${row[6]} - UNPAID")
            
             name = f"{row[2]} {row[3]}"
 
@@ -104,7 +104,7 @@ def viewSpreadsheet(creds):
 
             #date = f"{date_time_obj.date().day}.{date_time_obj.date().month}.{date_time_obj.date().year}"
 
-            print(f"Date is: {date}")
+            #print(f"Date is: {date}")
 
             file_id = row[1].split('/')[-1].split('=')[-1]
 
@@ -118,17 +118,45 @@ def viewSpreadsheet(creds):
 
 
 
-
         body = {'values': values}
 
         result = service.spreadsheets().values().append(
             spreadsheetId=SPREADSHEET_ID, range=PROCESSED_RANGE,
             valueInputOption='RAW', body=body).execute()
 
+
         print(f"{result.get('updates').get('updatedCells')} cells appended.")
 
         result = service.spreadsheets().values().clear(spreadsheetId=SPREADSHEET_ID, range=RESPONSE_RANGE).execute()
         print(f"Cleared Responses - Range Cleared: {result.get('clearedRange')}")
+    
+    print("Sorting Processed Range")
+
+    batch_update_spreadsheet_request_body = {
+
+    'requests': {
+     #   {
+            'sortRange' : {
+                'range' : {
+                    'sheetId': 1170149429,
+                    'startRowIndex': 1
+                },
+                'sortSpecs': [
+                    {
+                        'dimensionIndex': 0,
+                        'sortOrder': 1
+                    }
+                ]
+            }
+    }
+    #    }
+
+    #
+
+    }
+    request = service.spreadsheets().batchUpdate(spreadsheetId=SPREADSHEET_ID, body=batch_update_spreadsheet_request_body)
+    result = request.execute()
+    print(result)
 
 def get_file_title(service, file_id):
     try:
