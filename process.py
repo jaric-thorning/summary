@@ -144,7 +144,7 @@ def viewSpreadsheet(creds):
                 'sortSpecs': [
                     {
                         'dimensionIndex': 0,
-                        'sortOrder': 1
+                        'sortOrder': "DESCENDING"
                     }
                 ]
             }
